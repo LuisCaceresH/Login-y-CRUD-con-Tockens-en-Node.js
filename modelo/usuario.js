@@ -40,3 +40,11 @@ exports.listarUsuarios = async function (){
         return rows;
     });
 };
+
+exports.mostrarUsuario = async function (username){
+    await conexionMysql.query(`SELECT * FROM USUARIO WHERE username ='`+username+`'`, function(error, rows){
+        if(error) throw error;
+        console.log(rows);
+        return rows;
+    });
+}

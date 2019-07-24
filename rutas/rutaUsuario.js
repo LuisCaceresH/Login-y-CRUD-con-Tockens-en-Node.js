@@ -9,4 +9,5 @@ router.post('/crear', controlUsuario.crearUsuario);
 router.post('/modificar', controlUsuario.modificarUsuario);
 router.post('/eliminar', controlUsuario.eliminarUsuario);
 router.post('/listar', controlUsuario.listarUsuarios);
+router.post('/usuario', controlUsuario.mostrarUsuario);
 module.exports = router;
