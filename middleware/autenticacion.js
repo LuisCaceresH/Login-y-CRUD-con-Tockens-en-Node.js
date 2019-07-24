@@ -1,5 +1,6 @@
 const clave = 'Clave Secreta';
 const jwt = require('jsonwebtoken');
+const moment = require('moment');
 
 exports.verificarTokenUsuario = function(req, res, next){
     if(!req.headers.autorizacion) {
@@ -11,14 +12,24 @@ exports.verificarTokenUsuario = function(req, res, next){
     }
 
     var token = req.headers['autorizacion']
-    token = token.replace('Bearer ', '')
-
-    jwt.verify(token, clave, function(err, user) {
-        if (err) {
-            res.status(401).send({
-                error: 'Token no válido o ha expirado'
-            })
+    //token = token.replace('Bearer ', '')
+    try {  
+        const payload = jwt.verify(token, clave);        
+        if(payload.exp <= moment().unix()){
+            return res.send({
+                status : 'error',
+                message: 'Token ha expirado',
+                code: '400'
+            });
+        }else{
+            req.user = payload.username;
         }
-        next();
-    })
+    } catch (ex) {
+        return res.send({
+            status : 'error',
+            message: 'Token no válido',
+            code: '400'
+        });
+    } 
+    next();
 }

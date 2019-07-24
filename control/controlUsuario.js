@@ -11,7 +11,7 @@ exports.identificarUsuario = function (req, res) {
     conexionMysql.query(query, [username, password], function(error, rows){
         if(!error){
             if(rows[0]!=null){
-                token = jwt.crearTokenUsuario(rows[0][0]);
+                token = jwt.crearTokenUsuario(rows[0].username);
                 res.send(token);
             }else{
                 res.send("El usuario no existe");
@@ -25,11 +25,21 @@ exports.identificarUsuario = function (req, res) {
 
 exports.crearUsuario = function (req, res) {
     const {username, password, nombres, apellidos, dni} = req.body;
-    const query = 'INSERT INTO USUARIO VALUES (?, ?, ?, ?, ?)';
+    const query = 'INSERT INTO usuario VALUES (?, ?, ?, ?, ?)';
+    const fechaActual = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    console.log(fechaActual);
     conexionMysql.query(query, [username, password, nombres, apellidos, dni], function (error, rows){
         if(!error){
             if(rows.affectedRows === 1){
-                res.status(200).send("Usuario creado exitosamente");
+                const user = req.user;
+                const query2 = `INSERT INTO controlUsuario(tipo, fecha, userAfectado, userActivador) VALUES(?, ?, ?, ?)`;
+                conexionMysql.query(query2, ['insert',fechaActual, username, user], function(error, rows){
+                    if(!error){
+                        res.status(200).send("Usuario creado exitosamente");    
+                    }else{
+                        res.send(error);
+                    }
+                });                   
             }else{
                 res.status(401).send("No se pudo crear usuario");
             }
@@ -40,8 +50,9 @@ exports.crearUsuario = function (req, res) {
 };
 
 exports.modificarUsuario =  function (req, res){
-    const {username, password, nombres, apellidos, dni} = req.body;
-    const query = 'UPDATE USUARIO SET password = ?, nombres = ?, apellidos = ?, dni = ? WHERE username = ?';
+    const username = req.user;
+    const {password, nombres, apellidos, dni} = req.body;
+    const query = 'UPDATE usuario SET password = ?, nombres = ?, apellidos = ?, dni = ? WHERE username = ?';
     conexionMysql.query(query, [password, nombres, apellidos, dni, username], function(error, rows){
         if(!error){
             if(rows.affectedRows === 1){
@@ -56,8 +67,8 @@ exports.modificarUsuario =  function (req, res){
 };
 
 exports.eliminarUsuario = function (req, res){
-    const {username} = req.body;
-    const query = 'DELETE FROM USUARIO WHERE username = ?';
+    const username = req.user;
+    const query = 'DELETE FROM usuario WHERE username = ?';
     conexionMysql.query(query, [username], function(error, rows){
         if(!error){
             if(rows.affectedRows === 1){
