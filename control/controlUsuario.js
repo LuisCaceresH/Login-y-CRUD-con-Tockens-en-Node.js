@@ -10,6 +10,10 @@ exports.test = function (req, res) {
 exports.identificarUsuario = function (req, res) {
   var {username, password} = req.body;
   if(usuario.validarUsuario(username, password)){
+    var tokenData = {
+        username: username
+        // ANY DATA
+    }
     var token = jwt.sign(tokenData, password, {
         expiresIn: 60 * 60 * 24 // expira en 24 horas
     })
@@ -80,28 +84,28 @@ exports.mostrarUsuario = async function (req, res){
 
 
 
-app.get('/secure', (req, res) => {
-    var token = req.headers['authorization']
-    if(!token){
-        res.status(401).send({
-          error: "Es necesario el token de autenticación"
-        })
-        return
-    }
+// app.get('/secure', (req, res) => {
+//     var token = req.headers['authorization']
+//     if(!token){
+//         res.status(401).send({
+//           error: "Es necesario el token de autenticación"
+//         })
+//         return
+//     }
   
-    token = token.replace('Bearer ', '')
+//     token = token.replace('Bearer ', '')
   
-    jwt.verify(token, 'Secret Password', function(err, user) {
-      if (err) {
-        res.status(401).send({
-          error: 'Token inválido'
-        })
-      } else {
-        res.send({
-          message: 'OK'
-        })
-      }
-    })
-  })
+//     jwt.verify(token, 'Secret Password', function(err, user) {
+//       if (err) {
+//         res.status(401).send({
+//           error: 'Token inválido'
+//         })
+//       } else {
+//         res.send({
+//           message: 'OK'
+//         })
+//       }
+//     })
+//   })
   
 
