@@ -43,7 +43,7 @@ exports.crearUsuario = function (req, res) {
     const {username, password, nombres, apellidos, dni, rol} = req.body;
     const query = 'CALL SP_insert_usuario (?, ?, ?, ?, ?, ?)';
     const fechaActual = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
+    
     conexionMysql.query(query, [username, password, nombres, apellidos, dni, rol], function (error, rows){
         if(!error){
             if(rows.affectedRows === 1){
@@ -65,11 +65,42 @@ exports.crearUsuario = function (req, res) {
     })
 };
 
+exports.cambiarContraseña =  function (req, res){
+    const username = req.user.username;
+    const {passActual, passNuevo} = req.body;
+    const query = 'CALL SP_identificar_usuario(?, ?)';
+    
+    conexionMysql.query(query, [username, passActual], function(error, rows){
+        if(!error){
+            if(rows[0][0]!=null){
+                const query2 = 'CALL SP_cambiar_contraseña(?, ?)';
+                conexionMysql.query(query2, [username, passNuevo], function(error, rows){
+                    if(!error){
+                        if(rows.affectedRows === 1){
+                            res.status(200).json({msg:"Cambio de contraseña exitoso"});
+                        }else{
+                            res.status(401).send("No se pudo cambiar contraseña");
+                        }   
+                    }else {
+                        res.send(error);
+                    }
+                });
+            }else{
+                res.send("La contraseña actual es incorrecta");
+            }
+        }else{
+            res.send(error);
+        }
+    })
+
+    
+};
+
 exports.modificarUsuario =  function (req, res){
     const username = req.user.username;
-    const {password, nombres, apellidos, dni, rol} = req.body;
-    const query = 'CALL SP_modificar_usuario(?, ?, ?, ?, ?, ?)';
-    conexionMysql.query(query, [username, password, nombres, apellidos, dni, rol], function(error, rows){
+    const {nombres, apellidos, dni} = req.body;
+    const query = 'CALL SP_modificar_usuario(?, ?, ?, ?)';
+    conexionMysql.query(query, [username, nombres, apellidos, dni], function(error, rows){
         if(!error){
             if(rows.affectedRows === 1){
                 res.status(200).send("Usuario modificado");
@@ -110,7 +141,7 @@ exports.listarUsuarios = function (req, res){
 };
 
 exports.mostrarUsuario = function (req, res){
-    const {username} = req.body;
+    const username = req.params.id;
     const query = 'SELECT * FROM usuario WHERE username = ?';
     conexionMysql.query(query, [username], function(error, rows){
         if(!error){
