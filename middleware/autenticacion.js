@@ -55,6 +55,7 @@ exports.verificarTokenUsuarioAdmin = function(req, res, next){
                 code: '400'
             });
         }else{
+            console.log(payload.rol);
             if(payload.rol === "admin"){
                 req.user = payload.username;
                 req.rol = payload.rol;
