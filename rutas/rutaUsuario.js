@@ -6,7 +6,7 @@ const controlUsuario = require('../control/controlUsuario');
 
 router.get('/test', controlUsuario.test);
 router.post('/login', controlUsuario.identificarUsuario);
-router.post('/crear', auth.verificarTokenUsuario, controlUsuario.crearUsuario);
+router.post('/crear', auth.verificarTokenUsuarioAdmin, controlUsuario.crearUsuario);
 router.post('/modificar', auth.verificarTokenUsuario, controlUsuario.modificarUsuario);
 router.post('/eliminar',auth.verificarTokenUsuario, controlUsuario.eliminarUsuario);
 router.post('/listar',auth.verificarTokenUsuario, controlUsuario.listarUsuarios);

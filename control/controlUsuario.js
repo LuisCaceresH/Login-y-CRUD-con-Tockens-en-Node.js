@@ -7,16 +7,15 @@ exports.test = function (req, res) {
 
 exports.identificarUsuario = function (req, res) {
     const {username, password} = req.body;
-    const query = 'SELECT * FROM usuario WHERE username = ? AND password = ?';
+    const query = 'CALL SP_identificar_usuario(?, ?)';
     conexionMysql.query(query, [username, password], function(error, rows){
         if(!error){
-            if(rows[0]!=null){
-                token = jwt.crearTokenUsuario(rows[0].username);
+            if(rows[0][0]!=null){
+                token = jwt.crearTokenUsuario(rows[0][0].username, rows[0][0].rol);
                 res.send(token);
             }else{
                 res.send("El usuario no existe");
             }
-            
         }else{
             res.send(error);
         }
@@ -24,22 +23,22 @@ exports.identificarUsuario = function (req, res) {
 }; 
 
 exports.crearUsuario = function (req, res) {
-    const {username, password, nombres, apellidos, dni} = req.body;
-    const query = 'INSERT INTO usuario VALUES (?, ?, ?, ?, ?)';
+    const {username, password, nombres, apellidos, dni, rol} = req.body;
+    const query = 'CALL SP_insert_usuario (?, ?, ?, ?, ?, ?)';
     const fechaActual = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    console.log(fechaActual);
-    conexionMysql.query(query, [username, password, nombres, apellidos, dni], function (error, rows){
+
+    conexionMysql.query(query, [username, password, nombres, apellidos, dni, rol], function (error, rows){
         if(!error){
             if(rows.affectedRows === 1){
-                const user = req.user;
-                const query2 = `INSERT INTO controlUsuario(tipo, fecha, userAfectado, userActivador) VALUES(?, ?, ?, ?)`;
-                conexionMysql.query(query2, ['insert',fechaActual, username, user], function(error, rows){
-                    if(!error){
-                        res.status(200).send("Usuario creado exitosamente");    
-                    }else{
-                        res.send(error);
-                    }
-                });                   
+                // const user = req.user;
+                // const query2 = `INSERT INTO controlUsuario(tipo, fecha, userAfectado, userActivador) VALUES(?, ?, ?, ?)`;
+                // conexionMysql.query(query2, ['insert',fechaActual, username, user], function(error, rows){
+                //     if(!error){
+                res.status(200).send("Usuario creado exitosamente");    
+                //     }else{
+                //         res.send(error);
+                //     }
+                // });                   
             }else{
                 res.status(401).send("No se pudo crear usuario");
             }
@@ -51,9 +50,9 @@ exports.crearUsuario = function (req, res) {
 
 exports.modificarUsuario =  function (req, res){
     const username = req.user;
-    const {password, nombres, apellidos, dni} = req.body;
-    const query = 'UPDATE usuario SET password = ?, nombres = ?, apellidos = ?, dni = ? WHERE username = ?';
-    conexionMysql.query(query, [password, nombres, apellidos, dni, username], function(error, rows){
+    const {password, nombres, apellidos, dni, rol} = req.body;
+    const query = 'CALL SP_modificar_usuario(?, ?, ?, ?, ?, ?)';
+    conexionMysql.query(query, [username, password, nombres, apellidos, dni, rol], function(error, rows){
         if(!error){
             if(rows.affectedRows === 1){
                 res.status(200).send("Usuario modificado");
@@ -68,7 +67,7 @@ exports.modificarUsuario =  function (req, res){
 
 exports.eliminarUsuario = function (req, res){
     const username = req.user;
-    const query = 'DELETE FROM usuario WHERE username = ?';
+    const query = 'CALL SP_eliminar_usuario(?)';
     conexionMysql.query(query, [username], function(error, rows){
         if(!error){
             if(rows.affectedRows === 1){
@@ -83,7 +82,7 @@ exports.eliminarUsuario = function (req, res){
 };
 
 exports.listarUsuarios = function (req, res){
-    const query = 'SELECT * FROM usuario';
+    const query = 'SELECT * FROM vista_usuarios';
     conexionMysql.query(query, function(error, rows){
         if(!error){
             res.status(200).send(rows);
@@ -104,3 +103,4 @@ exports.mostrarUsuario = function (req, res){
         }
     })
 }
+
