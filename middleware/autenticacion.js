@@ -22,8 +22,8 @@ exports.verificarTokenUsuario = function(req, res, next){
                 code: '400'
             });
         }else{
-            req.user = payload.username;
-            req.rol = payload.rol;
+            req.user = payload;
+
         }
     } catch (ex) {
         return res.send({
@@ -35,45 +35,14 @@ exports.verificarTokenUsuario = function(req, res, next){
     next();
 }
 
-exports.verificarTokenUsuarioAdmin = function(req, res, next){
-    if(!req.headers.autorizacion) {
+exports.isAdmin = function(req, res, next){
+    if(req.user.rol != "admin"){
         return res.send({
-            status : 'error',
-            message: 'Token no encontrado',
+            status: 'error',
+            menssage: 'No cuenta con los permisos como administrador',
             code: '400'
-        });
+        })
     }
-
-    var token = req.headers['autorizacion']
-    //token = token.replace('Bearer ', '')
-    try {  
-        const payload = jwt.verify(token, clave);        
-        if(payload.exp <= moment().unix()){
-            return res.send({
-                status : 'error',
-                message: 'Token ha expirado',
-                code: '400'
-            });
-        }else{
-            console.log(payload.rol);
-            if(payload.rol === "admin"){
-                req.user = payload.username;
-                req.rol = payload.rol;
-            }else{
-                return res.send({
-                    status: 'error',
-                    menssage: 'No cuenta con los permisos como administrador',
-                    code: '400'
-                })
-            }
-        }
-    } catch (ex) {
-        return res.send({
-            status : 'error',
-            message: 'Token no válido',
-            code: '400'
-        });
-    } 
     next();
 }
 

@@ -5,9 +5,26 @@ exports.test = function (req, res) {
     res.send('Funciona!');
 };
 
-exports.identificarUsuario = function (req, res) {
+exports.loginUsuario = function (req, res) {
     const {username, password} = req.body;
     const query = 'CALL SP_identificar_usuario(?, ?)';
+    conexionMysql.query(query, [username, password], function(error, rows){
+        if(!error){
+            if(rows[0][0]!=null){
+                token = jwt.crearTokenUsuario(rows[0][0].username, rows[0][0].rol);
+                res.send(token);
+            }else{
+                res.send("El usuario no existe");
+            }
+        }else{
+            res.send(error);
+        }
+    })
+}; 
+
+exports.loginUsuarioAdmin = function (req, res) {
+    const {username, password} = req.body;
+    const query = 'CALL SP_login_usuario_admin(?, ?)';
     conexionMysql.query(query, [username, password], function(error, rows){
         if(!error){
             if(rows[0][0]!=null){
@@ -49,7 +66,7 @@ exports.crearUsuario = function (req, res) {
 };
 
 exports.modificarUsuario =  function (req, res){
-    const username = req.user;
+    const username = req.user.username;
     const {password, nombres, apellidos, dni, rol} = req.body;
     const query = 'CALL SP_modificar_usuario(?, ?, ?, ?, ?, ?)';
     conexionMysql.query(query, [username, password, nombres, apellidos, dni, rol], function(error, rows){
@@ -66,7 +83,7 @@ exports.modificarUsuario =  function (req, res){
 };
 
 exports.eliminarUsuario = function (req, res){
-    const username = req.user;
+    const username = req.user.username;
     const query = 'CALL SP_eliminar_usuario(?)';
     conexionMysql.query(query, [username], function(error, rows){
         if(!error){
