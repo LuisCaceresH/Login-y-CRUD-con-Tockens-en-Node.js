@@ -1,4 +1,4 @@
-const conexionMysql = require('../database/conexion');
+﻿const conexionMysql = require('../database/conexion');
 const jwt = require('../middleware/jwt');
 
 exports.test = function (req, res) {
@@ -46,19 +46,10 @@ exports.crearUsuario = function (req, res) {
     
     conexionMysql.query(query, [username, password, nombres, apellidos, dni, rol], function (error, rows){
         if(!error){
-            if(rows.affectedRows === 1){
-                // const user = req.user;
-                // const query2 = `INSERT INTO controlUsuario(tipo, fecha, userAfectado, userActivador) VALUES(?, ?, ?, ?)`;
-                // conexionMysql.query(query2, ['insert',fechaActual, username, user], function(error, rows){
-                //     if(!error){
-                res.status(200).send("Usuario creado exitosamente");    
-                //     }else{
-                //         res.send(error);
-                //     }
-                // });                   
-            }else{
-                res.status(401).send("No se pudo crear usuario");
-            }
+                res.json({
+                status: 'success',
+                code:200,
+            });
         }else{
             res.send(error);
         }
@@ -133,7 +124,11 @@ exports.listarUsuarios = function (req, res){
     const query = 'SELECT * FROM vista_usuarios';
     conexionMysql.query(query, function(error, rows){
         if(!error){
-            res.status(200).send(rows);
+            res.json({
+                status: 'success',
+                code:200,
+                resultado:rows
+            });
         }else{
             res.send(error);
         }
@@ -145,10 +140,30 @@ exports.mostrarUsuario = function (req, res){
     const query = 'SELECT * FROM usuario WHERE username = ?';
     conexionMysql.query(query, [username], function(error, rows){
         if(!error){
-            res.status(200).send(rows);
+	    console.log(rows[0]);
+	    if(rows[0]=== undefined){
+                res.json({
+                    status: 'empty',
+                    code:300,
+                    message:"No hay ningun"
+                });
+            }else{
+                res.json({
+                    status: 'success',
+                    code:200,
+                    deseado:rows[0]
+                });
+            } 
         }else{
             res.send(error);
         }
     })
 }
 
+const CronJob = require('cron').CronJob;
+const job = new CronJob('0 */1 * * * *', function() {
+    const d = new Date();
+      console.log('Siempre 30 minutos:', d);
+      console.log('activado');
+  });
+  job.start();
